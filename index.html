@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ഓൺലൈൻ പഠന ക്ലാസ് (Secure Player)</title>
+  <title>ഓൺലൈൻ പഠന ക്ലാസ് (Multi-User Portal)</title>
   <style>
     * {
       box-sizing: border-box;
@@ -36,12 +36,34 @@
       color: #38bdf8;
     }
 
-    .badge {
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .student-badge {
       background: #0369a1;
       color: #fff;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
       font-size: 0.8rem;
+    }
+
+    .logout-btn:hover {
+      background: #ef4444;
+      color: #fff;
     }
 
     /* Password Modal */
@@ -64,10 +86,11 @@
       max-width: 380px;
       width: 100%;
       border: 1px solid #334155;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
     .lock-box h2 {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       color: #38bdf8;
     }
 
@@ -84,10 +107,11 @@
       border: 1px solid #475569;
       background: #0f172a;
       color: #fff;
-      font-size: 1rem;
+      font-size: 1.1rem;
       text-align: center;
       margin-bottom: 15px;
       outline: none;
+      letter-spacing: 2px;
     }
 
     .lock-box button {
@@ -100,6 +124,11 @@
       font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .lock-box button:hover {
+      background: #0369a1;
     }
 
     /* Main Container */
@@ -113,7 +142,7 @@
       gap: 20px;
     }
 
-    /* Video Player Wrapper */
+    /* Video Player */
     .video-area {
       flex: 2.3;
       display: flex;
@@ -128,7 +157,6 @@
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid #334155;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
 
     .video-responsive {
@@ -144,10 +172,10 @@
       width: 100%;
       height: 100%;
       border: none;
-      pointer-events: none; /* YouTube ക്ലിക്കുകൾ തടയുന്നു */
+      pointer-events: none;
     }
 
-    /* ക്ലിക്ക് ഷീൽഡ്: വീഡിയോയിൽ തൊടുമ്പോൾ Play / Pause ആക്കാൻ മാത്രം */
+    /* ക്ലിക്ക് ഷീൽഡ് */
     .video-click-shield {
       position: absolute;
       top: 0;
@@ -158,7 +186,21 @@
       cursor: pointer;
     }
 
-    /* നമ്മുടെ സ്വന്തം കൺട്രോൾ ബാർ */
+    /* വാട്ടർമാർക്ക് (Student Name Overlay) */
+    .watermark {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(0, 0, 0, 0.4);
+      color: rgba(255, 255, 255, 0.45);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    /* കൺട്രോളുകൾ */
     .custom-controls-bar {
       height: 50px;
       background: #111827;
@@ -176,12 +218,11 @@
       color: #fff;
       font-size: 1.1rem;
       cursor: pointer;
+      padding: 6px;
+      border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 6px;
-      border-radius: 4px;
-      transition: 0.2s;
     }
 
     .ctrl-btn:hover {
@@ -195,14 +236,12 @@
       white-space: nowrap;
     }
 
-    /* Seek / Progress Bar */
     .progress-bar {
       flex: 1;
       height: 5px;
       background: #374151;
       border-radius: 5px;
       cursor: pointer;
-      position: relative;
       outline: none;
       -webkit-appearance: none;
       appearance: none;
@@ -217,7 +256,6 @@
       cursor: pointer;
     }
 
-    /* Video Info & Nav */
     .video-info {
       background: #1e293b;
       padding: 16px;
@@ -247,7 +285,6 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.9rem;
-      transition: 0.2s;
     }
 
     .nav-btn:hover:not(:disabled) {
@@ -259,7 +296,7 @@
       cursor: not-allowed;
     }
 
-    /* Sidebar Playlist */
+    /* Playlist */
     .playlist-area {
       flex: 1;
       background: #1e293b;
@@ -286,14 +323,6 @@
       flex-direction: column;
       gap: 8px;
       padding-right: 5px;
-    }
-
-    .playlist-items::-webkit-scrollbar {
-      width: 5px;
-    }
-    .playlist-items::-webkit-scrollbar-thumb {
-      background: #475569;
-      border-radius: 4px;
     }
 
     .lesson-item {
@@ -341,23 +370,26 @@
     }
   </style>
 </head>
-<body oncontextmenu="return false;"> <!-- റൈറ്റ് ക്ലിക്ക് തടയുന്നു -->
+<body oncontextmenu="return false;">
 
-  <!-- PIN സ്ക്രീൻ -->
+  <!-- PIN ലോഗിൻ സ്ക്രീൻ -->
   <div id="lockScreen">
     <div class="lock-box">
-      <h2>🔐 ക്ലാസ് റൂം</h2>
-      <p>ക്ലാസിൽ പ്രവേശിക്കാൻ നൽകിയിട്ടുള്ള കോഡ് നൽകുക</p>
-      <input type="password" id="passInput" placeholder="PIN നൽകുക" />
-      <button onclick="checkAccess()">തുടങ്ങുക</button>
-      <p id="errText" style="color: #f87171; font-size: 0.85rem; margin-top: 10px; display: none;">തെറ്റായ കോഡ്!</p>
+      <h2>🔐 വിദ്യാർത്ഥി ലോഗിൻ</h2>
+      <p>ക്ലാസിൽ ചേരുമ്പോൾ നൽകിയ രഹസ്യ PIN നൽകുക</p>
+      <input type="text" id="passInput" placeholder="PIN ഇവിടെ ടൈപ്പ് ചെയ്യുക" autocomplete="off" />
+      <button onclick="checkAccess()">പ്രവേശിക്കുക</button>
+      <p id="errText" style="color: #f87171; font-size: 0.85rem; margin-top: 10px; display: none;">ഈ PIN ശരിയല്ല! വീണ്ടും പരിശോധിക്കുക.</p>
     </div>
   </div>
 
   <!-- Header -->
   <nav>
     <h1>🎓 ഓൺലൈൻ ക്ലാസ്സ് റൂം</h1>
-    <span class="badge">10 പാഠങ്ങൾ</span>
+    <div class="nav-user">
+      <span class="student-badge" id="studentBadge">വിദ്യാർത്ഥി: -</span>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
   </nav>
 
   <div class="course-container">
@@ -368,10 +400,13 @@
           <div id="ytIframe"></div>
         </div>
 
-        <!-- മുകളിലെ ടൈറ്റിലിൽ തൊട്ട് YouTube-ലേക്ക് പോകാതിരിക്കാനുള്ള സുതാര്യമായ ഷീൽഡ് -->
+        <!-- വീഡിയോ സ്ക്രീൻ റെക്കോർഡ് ചെയ്യാതിരിക്കാൻ പേര് കാണിക്കുന്ന ഭാഗം -->
+        <div class="watermark" id="watermark">വിദ്യാർത്ഥി</div>
+
+        <!-- യൂട്യൂബിലേക്ക് പോകാതിരിക്കാനുള്ള ഷീൽഡ് -->
         <div class="video-click-shield" onclick="togglePlay()"></div>
 
-        <!-- നമ്മുടെ സ്വന്തം കൺട്രോളുകൾ -->
+        <!-- കൺട്രോളുകൾ -->
         <div class="custom-controls-bar">
           <button class="ctrl-btn" id="playBtn" onclick="togglePlay()">▶</button>
           <span class="time-text" id="timeDisplay">00:00 / 00:00</span>
@@ -382,7 +417,7 @@
       </div>
 
       <div class="video-info">
-        <h2 id="currentTitle">ക്ലാസ് തിരഞ്ഞെടുക്കുക...</h2>
+        <h2 id="currentTitle">ക്ലാസ് വിവരങ്ങൾ ലോഡ് ചെയ്യുന്നു...</h2>
         <div class="nav-buttons">
           <button id="prevBtn" class="nav-btn" onclick="prevClass()">◀ മുൻപത്തെ ക്ലാസ്</button>
           <button id="nextBtn" class="nav-btn" onclick="nextClass()">അടുത്ത ക്ലാസ് ▶</button>
@@ -390,24 +425,38 @@
       </div>
     </div>
 
-    <!-- Syllabus Playlist -->
+    <!-- Playlist -->
     <div class="playlist-area">
       <div class="playlist-header">പാഠഭാഗങ്ങൾ</div>
       <div class="playlist-items" id="playlist"></div>
     </div>
   </div>
 
-  <!-- YouTube Official IFrame API -->
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <script>
-    const SECRET_PIN = "1234"; // നിങ്ങളുടെ PIN ഇവിടെ മാറ്റാം
+    // ==============================================================
+    // 1. വിദ്യാർത്ഥികളുടെ പേരും അവർക്കുള്ള വ്യത്യസ്ത PIN നമ്പറുകളും
+    // ==============================================================
+    const studentList = [
+      { name: "Ajmal Thasleeque. k", pin: "EH2822" },
+      { name: "Ramanathan. T. K.", pin: "EH6061" },
+      { name: "Basheer bakavi. ", pin: "EH7766" },
+      { name: "Faseenasudheer", pin: "EH6109" },
+      { name: "ramisakutty", pin: "EH9600" },
+      { name: "yoonas ali A ", pin: "EH7396" },
+      { name: "Ashir", pin: "EH0715" },
+      { name: "Abdul Nasar", pin: "EH4040" },
+      { name: "അർജുൻ വി.", pin: "ARJ909" },
+      { name: "റോഹൻ ദാസ്", pin: "ROH111" }
+      // പുതിയ കുട്ടികളെ ചേർക്കാൻ: { name: "പേര്", pin: "PIN" }, എന്ന രൂപത്തിൽ ചേർക്കുക
+    ];
 
-
-
-    // 10 ക്ലാസുകളുടെ വിവരങ്ങൾ
+    // ==============================================================
+    // 2. നിങ്ങളുടെ 10 വീഡിയോകളുടെ YouTube Video ID
+    // ==============================================================
     const classList = [
-      { id: "YyA-EMVV7n0", title: "CLASS 1: Electro Homeo Class indroduction" },
+       { id: "YyA-EMVV7n0", title: "CLASS 1: Electro Homeo Class indroduction" },
       { id: "Gy00rUljU7o", title: "CLASS 2: Electro Homeo Class Medicines 1" },
       { id: "woJ832Gz1oU", title: "CLASS 3: Electro Homeo Class Medicines 2" },
       { id: "WZkvNDKEe-w", title: "CLASS 4: Electro Homeo Class Medicines 3" },
@@ -426,9 +475,34 @@
     let isApiReady = false;
     let updateTimer = null;
 
-    // YouTube API തയ്യാറാകുമ്പോൾ
     function onYouTubeIframeAPIReady() {
       isApiReady = true;
+    }
+
+    // ലോഗിൻ പരിശോധന (ഓരോരുത്തരുടെയും PIN പരിശോധിക്കുന്നു)
+    function checkAccess() {
+      const enteredPin = document.getElementById("passInput").value.trim().toUpperCase();
+      const errText = document.getElementById("errText");
+
+      // നൽകിയ PIN ലിസ്റ്റിൽ ഉണ്ടോ എന്ന് പരിശോധിക്കുന്നു
+      const student = studentList.find(s => s.pin.toUpperCase() === enteredPin);
+
+      if (student) {
+        // ശരിയായ PIN ആണെങ്കിൽ
+        document.getElementById("lockScreen").style.display = "none";
+        document.getElementById("studentBadge").innerText = `വിദ്യാർത്ഥി: ${student.name}`;
+        document.getElementById("watermark").innerText = `${student.name} (${student.pin})`;
+        
+        sessionStorage.setItem("loggedInStudent", JSON.stringify(student));
+        loadClass(0);
+      } else {
+        errText.style.display = "block";
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem("loggedInStudent");
+      location.reload();
     }
 
     function initPlayer(videoId) {
@@ -440,45 +514,28 @@
       player = new YT.Player('ytIframe', {
         videoId: videoId,
         playerVars: {
-          controls: 0,         // യൂട്യൂബ് കൺട്രോളുകളും ലോഗോയും മറയ്ക്കുന്നു
-          disablekb: 1,        // അനാവശ്യ കീബോർഡ് വഴിമാറ്റങ്ങൾ തടയുന്നു
-          modestbranding: 1,   // ലോഗോ ഒഴിവാക്കൽ
-          rel: 0,              // മറ്റ് ചാനൽ വീഡിയോകൾ ഒഴിവാക്കൽ
-          fs: 0                // യൂട്യൂബ് ഒറിജിനൽ ഫുൾസ്ക്രീൻ ഒഴിവാക്കൽ
+          controls: 0,
+          disablekb: 1,
+          modestbranding: 1,
+          rel: 0,
+          fs: 0
         },
         events: {
-          'onReady': onPlayerReady,
-          'onStateChange': onPlayerStateChange
+          'onReady': () => {
+            updateTimer = setInterval(updateProgress, 500);
+          },
+          'onStateChange': (e) => {
+            document.getElementById("playBtn").innerText = (e.data === YT.PlayerState.PLAYING) ? "⏸" : "▶";
+          }
         }
       });
     }
 
-    function onPlayerReady(event) {
-      updateTime();
-      updateTimer = setInterval(updateProgress, 500);
-    }
-
-    function onPlayerStateChange(event) {
-      const playBtn = document.getElementById("playBtn");
-      if (event.data === YT.PlayerState.PLAYING) {
-        playBtn.innerText = "⏸";
-      } else {
-        playBtn.innerText = "▶";
-      }
-    }
-
-    // Play / Pause ടോഗിൾ
     function togglePlay() {
       if (!player) return;
-      const state = player.getPlayerState();
-      if (state === YT.PlayerState.PLAYING) {
-        player.pauseVideo();
-      } else {
-        player.playVideo();
-      }
+      (player.getPlayerState() === YT.PlayerState.PLAYING) ? player.pauseVideo() : player.playVideo();
     }
 
-    // ശബ്ദം ഓഫ് / ഓൺ
     function toggleMute() {
       if (!player) return;
       const muteBtn = document.getElementById("muteBtn");
@@ -491,14 +548,11 @@
       }
     }
 
-    // ടൈംലൈൻ മാറ്റുമ്പോൾ
     function seekVideo(val) {
       if (!player) return;
-      const duration = player.getDuration();
-      player.seekTo((val / 100) * duration, true);
+      player.seekTo((val / 100) * player.getDuration(), true);
     }
 
-    // ടൈംലൈൻ പ്രോഗ്രസ്സ് അപ്ഡേറ്റ്
     function updateProgress() {
       if (!player || typeof player.getCurrentTime !== 'function') return;
       const current = player.getCurrentTime() || 0;
@@ -516,24 +570,12 @@
       return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
-    // ഫുൾസ്ക്രീൻ മോഡ്
     function toggleFullScreen() {
       const wrapper = document.getElementById("playerWrapper");
       if (!document.fullscreenElement) {
         wrapper.requestFullscreen().catch(err => alert("Error: " + err.message));
       } else {
         document.exitFullscreen();
-      }
-    }
-
-    // ലോഗിൻ പരിശോധന
-    function checkAccess() {
-      const entered = document.getElementById("passInput").value;
-      if (entered === SECRET_PIN) {
-        document.getElementById("lockScreen").style.display = "none";
-        loadClass(0);
-      } else {
-        document.getElementById("errText").style.display = "block";
       }
     }
 
@@ -582,6 +624,16 @@
     document.getElementById("passInput").addEventListener("keypress", (e) => {
       if (e.key === "Enter") checkAccess();
     });
+
+    // നേരത്തെ ലോഗിൻ ചെയ്തിട്ടുണ്ടെങ്കിൽ നേരിട്ട് തുറക്കുന്നു
+    const savedStudent = sessionStorage.getItem("loggedInStudent");
+    if (savedStudent) {
+      const student = JSON.parse(savedStudent);
+      document.getElementById("lockScreen").style.display = "none";
+      document.getElementById("studentBadge").innerText = `വിദ്യാർത്ഥി: ${student.name}`;
+      document.getElementById("watermark").innerText = `${student.name} (${student.pin})`;
+      loadClass(0);
+    }
 
     renderPlaylist();
   </script>
