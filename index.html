@@ -1,187 +1,589 @@
 <!DOCTYPE html>
-
-<html lang="en">
-
+<html lang="ml">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="/static/styles/login.css/">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-    <link rel="icon" href="1.1.png" type="image/x-icon">
-     <link rel="stylesheet" href="style.css" />
-    <title>Electro Homeo Dr.Abdul Nasar</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ഓൺലൈൻ പഠന ക്ലാസ് (Secure Player)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar */
+    nav {
+      background: #1e293b;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+
+    nav h1 {
+      font-size: 1.25rem;
+      color: #38bdf8;
+    }
+
+    .badge {
+      background: #0369a1;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+
+    /* Password Modal */
+    #lockScreen {
+      position: fixed;
+      inset: 0;
+      background: #0b0f19;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      padding: 20px;
+    }
+
+    .lock-box {
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 380px;
+      width: 100%;
+      border: 1px solid #334155;
+    }
+
+    .lock-box h2 {
+      margin-bottom: 10px;
+      color: #38bdf8;
+    }
+
+    .lock-box p {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-bottom: 20px;
+    }
+
+    .lock-box input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #fff;
+      font-size: 1rem;
+      text-align: center;
+      margin-bottom: 15px;
+      outline: none;
+    }
+
+    .lock-box button {
+      width: 100%;
+      padding: 12px;
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* Main Container */
+    .course-container {
+      display: flex;
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    /* Video Player Wrapper */
+    .video-area {
+      flex: 2.3;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .custom-player-wrapper {
+      position: relative;
+      width: 100%;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #334155;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    .video-responsive {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 ratio */
+      height: 0;
+    }
+
+    .video-responsive iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      pointer-events: none; /* YouTube ക്ലിക്കുകൾ തടയുന്നു */
+    }
+
+    /* ക്ലിക്ക് ഷീൽഡ്: വീഡിയോയിൽ തൊടുമ്പോൾ Play / Pause ആക്കാൻ മാത്രം */
+    .video-click-shield {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 50px);
+      z-index: 10;
+      cursor: pointer;
+    }
+
+    /* നമ്മുടെ സ്വന്തം കൺട്രോൾ ബാർ */
+    .custom-controls-bar {
+      height: 50px;
+      background: #111827;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      gap: 12px;
+      z-index: 20;
+      border-top: 1px solid #1f2937;
+    }
+
+    .ctrl-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 4px;
+      transition: 0.2s;
+    }
+
+    .ctrl-btn:hover {
+      color: #38bdf8;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .time-text {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+
+    /* Seek / Progress Bar */
+    .progress-bar {
+      flex: 1;
+      height: 5px;
+      background: #374151;
+      border-radius: 5px;
+      cursor: pointer;
+      position: relative;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .progress-bar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+    }
+
+    /* Video Info & Nav */
+    .video-info {
+      background: #1e293b;
+      padding: 16px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .video-info h2 {
+      font-size: 1.15rem;
+      color: #f1f5f9;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      padding: 8px 15px;
+      background: #334155;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: 0.2s;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: #0284c7;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Sidebar Playlist */
+    .playlist-area {
+      flex: 1;
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 18px;
+      border: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      max-height: 75vh;
+    }
+
+    .playlist-header {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #38bdf8;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 10px;
+    }
+
+    .playlist-items {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 5px;
+    }
+
+    .playlist-items::-webkit-scrollbar {
+      width: 5px;
+    }
+    .playlist-items::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+
+    .lesson-item {
+      padding: 12px;
+      background: #0f172a;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid transparent;
+      transition: 0.2s;
+    }
+
+    .lesson-item:hover {
+      background: #1e293b;
+      border-color: #38bdf8;
+    }
+
+    .lesson-item.active {
+      background: #0369a1;
+      border-color: #38bdf8;
+    }
+
+    .lesson-num {
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    .lesson-title {
+      font-size: 0.9rem;
+      flex: 1;
+    }
+
+    @media (max-width: 900px) {
+      .course-container {
+        flex-direction: column;
+      }
+      .playlist-area {
+        max-height: 400px;
+      }
+    }
+  </style>
 </head>
+<body oncontextmenu="return false;"> <!-- റൈറ്റ് ക്ലിക്ക് തടയുന്നു -->
 
-<body>
+  <!-- PIN സ്ക്രീൻ -->
+  <div id="lockScreen">
+    <div class="lock-box">
+      <h2>🔐 ക്ലാസ് റൂം</h2>
+      <p>ക്ലാസിൽ പ്രവേശിക്കാൻ നൽകിയിട്ടുള്ള കോഡ് നൽകുക</p>
+      <input type="password" id="passInput" placeholder="PIN നൽകുക" />
+      <button onclick="checkAccess()">തുടങ്ങുക</button>
+      <p id="errText" style="color: #f87171; font-size: 0.85rem; margin-top: 10px; display: none;">തെറ്റായ കോഡ്!</p>
+    </div>
+  </div>
 
-    <header>
-      <img src="z1.png" alt="" srcset="">
+  <!-- Header -->
+  <nav>
+    <h1>🎓 ഓൺലൈൻ ക്ലാസ്സ് റൂം</h1>
+    <span class="badge">10 പാഠങ്ങൾ</span>
+  </nav>
 
-    </header>
-    <section>
-        <div class="coarses">
-
-            <div class="cards">
-                <a href="class2.html">
-          <img src="cl1.png" alt="cards image">
-       </a>
-            </div>
-        <div class="cards">
-                <a href="level2.html">
-          <img src="cl2.png" alt="cards image">
-        </a>
-       </div>
-          <div class="cards">
-                <a href="class3.html">
-          <img src="cl3.png" alt="cards image">
-       </a>
-              </div>  
-
-            <div class="cards">
-                <a href="class4.html">
-          <img src="cl4.png" alt="cards image">
-        </a>
-                
-            </div>
-
-              <div class="cards">
-                <a href="class5.html">
-          <img src="cl5.png" alt="cards image">
-        </a>
-               
-            </div>
-            <div class="cards">
-                <a href="class6.html">
-          <img src="cl6.png" alt="cards image">
-
-        </a>
-               
-            </div>
-        </div>
+  <div class="course-container">
+    <div class="video-area">
+      <!-- Player Wrapper -->
+      <div class="custom-player-wrapper" id="playerWrapper">
+        <div class="video-responsive">
+          <div id="ytIframe"></div>
         </div>
 
-   
+        <!-- മുകളിലെ ടൈറ്റിലിൽ തൊട്ട് YouTube-ലേക്ക് പോകാതിരിക്കാനുള്ള സുതാര്യമായ ഷീൽഡ് -->
+        <div class="video-click-shield" onclick="togglePlay()"></div>
 
-        <div class="coarses">
-
-            <div class="cards">
-                <a href="class7.html">
-          <img src="cl7.png" alt="cards image">
-       </a>
-                
-            </div>
-            <div class="cards">
-                <a href="class8.html">
-          <img src="cl8.png" alt="cards image">
-        </a>
-                
-            </div>
-           <div class="cards">
-                <a href="class9.html">
-          <img src="cl9.png" alt="cards image">
-        </a>
-                       
-            </div>
-            <div class="cards">
-                <a href="class10.html">
-          <img src="cl10.png" alt="cards image">
-
-        </a>
-                
-            </div>
-            <div class="cards">
-                <a href="class11.html">
-          <img src="cl11.png" alt="cards image">
-        </a>
-         
-
-            </div>
-                
-            
-            <div class="cards">
-                <a href="class12.html">
-          <img src="cl12.png" alt="cards image">
-        </a>
-          
-
-            </div>
-                
-            
-            
-             </section>
-
-    <center> <img src="nb.png" class="responsive"> </center>
-    </br>
-    </br>
-    
-        <div class="coarses">
-
-            <div class="cards">
-                <a href="#">
-          <img src="LEVAL 2.png" alt="cards image">
-
-        </a>
-                <div class="locked">
-                    <img src="LOCKED.png" height="10px" width="10px" alt="">
-
-                </div>
-
-            </div>
-
-
-
-            <div class="cards">
-                <a href="#">
-          <img src="LEVAL 2.png" alt="cards image">
-
-        </a>
-                <div class="locked">
-                    <img src="LOCKED.png" height="10px" width="10px" alt="">
-
-                </div>
-
-            </div>
-
-            <div class="cards">
-                <a href="#">
-          <img src="LEVAL 2.png" alt="cards image">
-
-        </a>
-                <div class="locked">
-                    <img src="LOCKED.png" height="10px" width="10px" alt="">
-
-                </div>
-
-            </div>
-
-
-            <div class="cards">
-                <a href="#">
-          <img src="LEVAL 2.png" alt="cards image">
-
-        </a>
-                <div class="locked">
-                    <img src="LOCKED.png" height="10px" width="10px" alt="">
-
-                </div>
-
-            </div>
-
-          
-
-
+        <!-- നമ്മുടെ സ്വന്തം കൺട്രോളുകൾ -->
+        <div class="custom-controls-bar">
+          <button class="ctrl-btn" id="playBtn" onclick="togglePlay()">▶</button>
+          <span class="time-text" id="timeDisplay">00:00 / 00:00</span>
+          <input type="range" class="progress-bar" id="progressBar" min="0" max="100" value="0" oninput="seekVideo(this.value)">
+          <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
+          <button class="ctrl-btn" onclick="toggleFullScreen()">⛶</button>
         </div>
+      </div>
+
+      <div class="video-info">
+        <h2 id="currentTitle">ക്ലാസ് തിരഞ്ഞെടുക്കുക...</h2>
+        <div class="nav-buttons">
+          <button id="prevBtn" class="nav-btn" onclick="prevClass()">◀ മുൻപത്തെ ക്ലാസ്</button>
+          <button id="nextBtn" class="nav-btn" onclick="nextClass()">അടുത്ത ക്ലാസ് ▶</button>
         </div>
+      </div>
+    </div>
 
-    </section>
-    <script src="app.js"></script>
+    <!-- Syllabus Playlist -->
+    <div class="playlist-area">
+      <div class="playlist-header">പാഠഭാഗങ്ങൾ</div>
+      <div class="playlist-items" id="playlist"></div>
+    </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+  <!-- YouTube Official IFrame API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <script>
+    const SECRET_PIN = "1234"; // നിങ്ങളുടെ PIN ഇവിടെ മാറ്റാം
+
+
+
+    // 10 ക്ലാസുകളുടെ വിവരങ്ങൾ
+    const classList = [
+      { id: "YyA-EMVV7n0", title: "CLASS 1: Electro Homeo Class indroduction" },
+      { id: "Gy00rUljU7o", title: "CLASS 2: Electro Homeo Class Medicines 1" },
+      { id: "woJ832Gz1oU", title: "CLASS 3: Electro Homeo Class Medicines 2" },
+      { id: "WZkvNDKEe-w", title: "CLASS 4: Electro Homeo Class Medicines 3" },
+      { id: "Iv3xBKqVmvo", title: "CLASS 5: Electro Homeo Class scrofoloso Groop" },
+      { id: "hSrVWHV8GWI", title: "CLASS 6: Electro Homeo Class Canceroso Groop" },
+      { id: "rlAVZrM2DUo", title: "CLASS 7: Electro Homeo Class Angiotico & Febrifugo" },
+      { id: "7sUXhrnD0Is", title: "CLASS 8: Electro Homeo Class Pettolale Groop" },
+      { id: "-kJ4lY6d9l4", title: "CLASS 9: Electro Homeo Class VER,VEN,APP & Limphatico" },
+      { id: "x3bSYYmDkBY", title: "CLASS 10:Electro Homeo Class Electricity Medicines" },
+      { id: "pEe8Z-FF8yo", title: "CLASS 11: Electro Homeo Class Dedeases& Medicines" },
+      { id: "eVTXPUF4Oz4", title: "CLASS 12: Electro Homeo Class Dedeases& Medicines" }
+    ];
+
+    let player;
+    let currentIndex = 0;
+    let isApiReady = false;
+    let updateTimer = null;
+
+    // YouTube API തയ്യാറാകുമ്പോൾ
+    function onYouTubeIframeAPIReady() {
+      isApiReady = true;
+    }
+
+    function initPlayer(videoId) {
+      if (player) {
+        player.loadVideoById(videoId);
+        return;
+      }
+
+      player = new YT.Player('ytIframe', {
+        videoId: videoId,
+        playerVars: {
+          controls: 0,         // യൂട്യൂബ് കൺട്രോളുകളും ലോഗോയും മറയ്ക്കുന്നു
+          disablekb: 1,        // അനാവശ്യ കീബോർഡ് വഴിമാറ്റങ്ങൾ തടയുന്നു
+          modestbranding: 1,   // ലോഗോ ഒഴിവാക്കൽ
+          rel: 0,              // മറ്റ് ചാനൽ വീഡിയോകൾ ഒഴിവാക്കൽ
+          fs: 0                // യൂട്യൂബ് ഒറിജിനൽ ഫുൾസ്ക്രീൻ ഒഴിവാക്കൽ
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerReady(event) {
+      updateTime();
+      updateTimer = setInterval(updateProgress, 500);
+    }
+
+    function onPlayerStateChange(event) {
+      const playBtn = document.getElementById("playBtn");
+      if (event.data === YT.PlayerState.PLAYING) {
+        playBtn.innerText = "⏸";
+      } else {
+        playBtn.innerText = "▶";
+      }
+    }
+
+    // Play / Pause ടോഗിൾ
+    function togglePlay() {
+      if (!player) return;
+      const state = player.getPlayerState();
+      if (state === YT.PlayerState.PLAYING) {
+        player.pauseVideo();
+      } else {
+        player.playVideo();
+      }
+    }
+
+    // ശബ്ദം ഓഫ് / ഓൺ
+    function toggleMute() {
+      if (!player) return;
+      const muteBtn = document.getElementById("muteBtn");
+      if (player.isMuted()) {
+        player.unMute();
+        muteBtn.innerText = "🔊";
+      } else {
+        player.mute();
+        muteBtn.innerText = "🔇";
+      }
+    }
+
+    // ടൈംലൈൻ മാറ്റുമ്പോൾ
+    function seekVideo(val) {
+      if (!player) return;
+      const duration = player.getDuration();
+      player.seekTo((val / 100) * duration, true);
+    }
+
+    // ടൈംലൈൻ പ്രോഗ്രസ്സ് അപ്ഡേറ്റ്
+    function updateProgress() {
+      if (!player || typeof player.getCurrentTime !== 'function') return;
+      const current = player.getCurrentTime() || 0;
+      const duration = player.getDuration() || 0;
+
+      if (duration > 0) {
+        document.getElementById("progressBar").value = (current / duration) * 100;
+        document.getElementById("timeDisplay").innerText = `${formatTime(current)} / ${formatTime(duration)}`;
+      }
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    // ഫുൾസ്ക്രീൻ മോഡ്
+    function toggleFullScreen() {
+      const wrapper = document.getElementById("playerWrapper");
+      if (!document.fullscreenElement) {
+        wrapper.requestFullscreen().catch(err => alert("Error: " + err.message));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // ലോഗിൻ പരിശോധന
+    function checkAccess() {
+      const entered = document.getElementById("passInput").value;
+      if (entered === SECRET_PIN) {
+        document.getElementById("lockScreen").style.display = "none";
+        loadClass(0);
+      } else {
+        document.getElementById("errText").style.display = "block";
+      }
+    }
+
+    function renderPlaylist() {
+      const playlistEl = document.getElementById("playlist");
+      playlistEl.innerHTML = "";
+
+      classList.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = `lesson-item ${index === currentIndex ? 'active' : ''}`;
+        div.onclick = () => loadClass(index);
+
+        div.innerHTML = `
+          <span class="lesson-num">${index + 1}</span>
+          <span class="lesson-title">${item.title}</span>
+        `;
+        playlistEl.appendChild(div);
+      });
+    }
+
+    function loadClass(index) {
+      currentIndex = index;
+      const video = classList[index];
+
+      document.getElementById("currentTitle").innerText = video.title;
+      document.getElementById("prevBtn").disabled = (currentIndex === 0);
+      document.getElementById("nextBtn").disabled = (currentIndex === classList.length - 1);
+
+      if (isApiReady) {
+        initPlayer(video.id);
+      } else {
+        setTimeout(() => loadClass(index), 300);
+      }
+
+      renderPlaylist();
+    }
+
+    function nextClass() {
+      if (currentIndex < classList.length - 1) loadClass(currentIndex + 1);
+    }
+
+    function prevClass() {
+      if (currentIndex > 0) loadClass(currentIndex - 1);
+    }
+
+    document.getElementById("passInput").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") checkAccess();
+    });
+
+    renderPlaylist();
+  </script>
 </body>
-
 </html>
-
